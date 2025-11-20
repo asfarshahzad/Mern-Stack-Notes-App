@@ -30,5 +30,5 @@ app.use("/api/notes", notesRouter);
 // Listen
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () =>
-    console.log(`Server is running on PORT http://localhost:${PORT}`)
+    console.log(`Server is running on this PORT http://localhost:${PORT}`)
 );
