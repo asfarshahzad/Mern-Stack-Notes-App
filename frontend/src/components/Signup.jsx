@@ -153,7 +153,7 @@ const Signup = () => {
                                 type="file"
                                 id="profile"
                                 name="profile"
-                                accept="image/*"
+                                accept="image/jpg, image/jpeg, image/png, image/webp"
                                 className="hidden"
                                 onChange={(e) => {
                                     handleSubmit(e);

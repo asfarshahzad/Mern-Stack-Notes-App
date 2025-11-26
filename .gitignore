@@ -36,3 +36,4 @@ Thumbs.db
 # === Miscellaneous ===
 coverage/       # agar testing coverage generate hoti hai
 *.bak           # backup files
+.vercel
