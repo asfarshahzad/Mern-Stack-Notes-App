@@ -11,7 +11,6 @@ const Navbar = () => {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
     const [openMenu, setOpenMenu] = useState(false);
-
     const handleLogout = async () => {
         const apiUrl = import.meta.env.VITE_API_URL;
         try {
@@ -118,9 +117,21 @@ const Navbar = () => {
                                     id="user-avatar"
                                     whileHover={{ scale: 1.07 }}
                                     onClick={() => setOpenMenu((prev) => !prev)}
-                                    className="cursor-pointer w-9 h-9 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center font-semibold text-white"
+                                    className="cursor-pointer w-9 h-9 rounded-full flex items-center justify-center font-semibold text-white overflow-hidden bg-gradient-to-r from-blue-400 to-purple-500"
                                 >
-                                    {user ? user.email.charAt(0).toUpperCase() : "U"}
+                                    {/* If user has image → show image */}
+                                    {user && user.imageUrl ? (
+                                        <img
+                                            src={user.imageUrl}
+                                            alt="profile"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        /* No image → show letters */
+                                        <span>
+                                            {user ? user.username.charAt(0).toUpperCase() : "U"}
+                                        </span>
+                                    )}
                                 </motion.div>
 
                                 {/* DROPDOWN PORTAL */}

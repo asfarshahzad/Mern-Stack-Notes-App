@@ -1,5 +1,6 @@
 import express from "express";
 import { createUser, loginUser, logOut, verifyUser } from "../controllers/authController.js";
+import { upload } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ router.get("/", (req, res) => {
 });
 
 // Auth endpoints
-router.post("/signup", createUser);
+router.post("/signup", upload.single("profile"), createUser);
 router.post("/login", loginUser);
 router.post("/logout", logOut);
 router.get("/verify", verifyUser);

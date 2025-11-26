@@ -1,29 +1,57 @@
 import bcrypt from "bcrypt"
 import authModel from "../models/authModel.js"
 import jwt from "jsonwebtoken"
+import { v2 as cloudinary } from "cloudinary"
+import fs from "fs";
 import dotenv from "dotenv"
 dotenv.config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.CLOUD_API_KEY,
+    api_secret: process.env.CLOUD_API_SECRET
+})
 
 // create new user 
 export const createUser = async (req, res) => {
     try {
+        const filePath = req.file.path
         const { username, email, password } = req.body
 
-        const existingUser = await authModel.findOne({ email })
+        const existingUser = await authModel.findOne({ email });
         if (existingUser) {
-            return res.status(404).json({ message: "Email already exist." })
+            // delete locally saved file
+            if (req.file && filePath) {
+                fs.unlink(req.file.path, (err) => { });
+            }
+
+            return res.status(404).json({ message: "Email already exist." });
         }
+
+        if (!filePath) {
+            return res.status(404).json({ message: "Image is required." })
+        }
+        const imageResult = await cloudinary.uploader.upload(filePath, {
+            folder: "uploads",
+            allowed_formats: ["jpg", "jpeg", "png", "webp"]
+        })
+
+        fs.unlink(filePath, (err) => {
+            if (err) console.error("Error deleting file")
+            else console.log("local file deleted successfully")
+        })
 
         const hashPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await authModel.create({ username, email, password: hashPassword })
+        const newUser = await authModel.create({ username, email, password: hashPassword, imageUrl: imageResult.secure_url })
 
         res.status(201).json({
             message: "account created successfully.",
             user: {
                 id: newUser._id,
                 username: newUser.username,
-                email: newUser.email
+                email: newUser.email,
+                imageUrl: newUser.imageUrl
             }
         })
 
@@ -71,7 +99,8 @@ export const loginUser = async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                imageUrl: user.imageUrl
             }
         });
 
@@ -101,14 +130,15 @@ export const logOut = (req, res) => {
 
 
 // verify user 
-export const verifyUser = (req, res) => {
+export const verifyUser = async (req, res) => {
     const token = req.cookies.token;
 
     if (!token) return res.status(401).json({ message: "Access denied. No token found." })
 
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY)
-        res.status(200).json({ user: { id: decoded.id, username: decoded.username, email: decoded.email } });
+        const user = await authModel.findById(decoded.id)
+        res.status(200).json({ user: { id: decoded.id, username: user.username, email: user.email, imageUrl: user.imageUrl } });
     } catch (error) {
         return res.status(401).json({ message: "Invalid or expired token.", user: null });
     }

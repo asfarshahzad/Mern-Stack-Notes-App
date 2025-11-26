@@ -18,7 +18,6 @@ const UserContextProvider = ({ children }) => {
             });
 
             const result = await response.json();
-
             if (response.ok && result.user) {
                 setUser(result.user);
             } else {

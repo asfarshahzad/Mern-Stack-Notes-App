@@ -233,7 +233,9 @@ const Dashboard = ({ notes, setNotes }) => {
                                             <>
                                                 <div>
                                                     <h3 className="text-xl font-semibold mb-2 line-clamp-1">{capitalizedWord(note.title)}</h3>
-                                                    <p className="text-white/80 mb-4 line-clamp-2 flex-1 whitespace-pre-wrap">{note.description}</p>
+                                                    <p className="text-white/80 mb-4 line-clamp-2 flex-1 whitespace-pre-wrap break-words overflow-hidden">
+                                                        {note.description}
+                                                    </p>
                                                 </div>
 
                                                 {/* Bottom buttons */}
@@ -351,7 +353,7 @@ const Dashboard = ({ notes, setNotes }) => {
 
                             <h2 className="text-2xl font-bold mb-4">{capitalizedWord(viewNote.title)}</h2>
 
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">
+                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4 break-words">
                                 {viewNote.description}
                             </p>
 

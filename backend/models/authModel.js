@@ -13,6 +13,10 @@ const authSchema = mongoose.Schema({
     password: {
         type: String,
         trim: true
+    },
+    imageUrl: {
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true,

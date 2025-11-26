@@ -4,28 +4,45 @@ import { useNavigate } from 'react-router-dom'
 import { showToast } from '../App'; // ✅ App.jsx se import kiya
 
 const Signup = () => {
-    const [userData, setUserData] = useState({
+    const [isFocused, setIsFocused] = useState(false);
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
+        profile: null
     });
-    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
+        const { name, value, files } = e.target;
+
+        if (name === "profile") {
+            setFormData((prev) => ({ ...prev, profile: files[0] }))
+        }
+        else {
+            setFormData((prev) => ({ ...prev, [name]: value }))
+        }
+    }
+
+    const createUser = async (e) => {
         e.preventDefault();
-
-        if (!userData.username || !userData.email || !userData.password) {
+        if (!formData.username || !formData.email || !formData.password || !formData.profile) {
             return showToast("All fields are required.", "error");
+        }
+
+        const data = new FormData();
+        data.append("username", formData.username)
+        data.append("email", formData.email)
+        data.append("password", formData.password)
+        if (formData.profile) {
+            data.append("profile", formData.profile)
         }
 
         const apiUrl = import.meta.env.VITE_API_URL;
         try {
             const response = await fetch(`${apiUrl}/auth/signup`, {
                 method: "POST",
-                body: JSON.stringify(userData),
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                body: data
             });
             const result = await response.json();
             if (response.ok && result) {
@@ -38,7 +55,8 @@ const Signup = () => {
             showToast("Internal Server Error", "error"); // ✅ Server error toast
         }
 
-        setUserData({ username: "", email: "", password: "" });
+        setFormData({ username: "", email: "", password: "" });
+        document.getElementById("profile").value = "";
     };
 
     return (
@@ -46,7 +64,7 @@ const Signup = () => {
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 w-full max-w-md"
+                className="bg-white/10 backdrop-blur-lg rounded-2xl px-8 py-5 border border-white/20 w-full max-w-md"
             >
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -57,7 +75,9 @@ const Signup = () => {
                     <p className="text-gray-400">Join thousands of organized thinkers</p>
                 </motion.div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={createUser} className="space-y-7">
+
+                    {/* Username */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -65,14 +85,15 @@ const Signup = () => {
                     >
                         <input
                             type="text"
-                            name="name"
-                            value={userData.username}
-                            onChange={(e) => setUserData({ ...userData, username: e.target.value })}
+                            name="username"
+                            value={formData.username}
+                            onChange={handleSubmit}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-all"
-                            placeholder="Enter your full name"
+                            placeholder="Enter your name"
                         />
                     </motion.div>
 
+                    {/* Email */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -81,13 +102,14 @@ const Signup = () => {
                         <input
                             type="email"
                             name="email"
-                            value={userData.email}
-                            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                            value={formData.email}
+                            onChange={handleSubmit}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-all"
                             placeholder="Enter your email"
                         />
                     </motion.div>
 
+                    {/* Password */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -96,13 +118,53 @@ const Signup = () => {
                         <input
                             type="password"
                             name="password"
-                            value={userData.password}
-                            onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+                            value={formData.password}
+                            onChange={handleSubmit}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-all"
                             placeholder="Enter your password"
                         />
                     </motion.div>
 
+                    {/* Profile Image Upload (Modern + Preview) */}
+
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="flex flex-col gap-2"
+                    >
+                        <label
+                            htmlFor="profile"
+                            onClick={() => setIsFocused(true)} // simulate focus
+                            className={`cursor-pointer flex flex-col p-3 w-full rounded-lg border ${isFocused ? "border-blue-500" : "border-white/10"
+                                } bg-white/5 transition-all hover:bg-white/10`}
+                        >
+                            {!formData.profile && (
+                                <span className="text-gray-400">
+                                    Click to upload image <span className="text-[14px]">(PNG, JPG, JPEG)</span>
+                                </span>
+                            )}
+
+                            {formData.profile && (
+                                <span className="text-white text-sm">{formData.profile.name}</span>
+                            )}
+
+                            <input
+                                type="file"
+                                id="profile"
+                                name="profile"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    handleSubmit(e);
+                                    setIsFocused(false); // remove focus after file selected
+                                }}
+                            />
+                        </label>
+                    </motion.div>
+
+
+                    {/* Submit Button */}
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -111,6 +173,7 @@ const Signup = () => {
                     >
                         Create Account
                     </motion.button>
+
                 </form>
 
                 <motion.div
